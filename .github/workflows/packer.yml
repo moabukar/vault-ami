@@ -28,8 +28,8 @@ jobs:
         working-directory: tools/packer
         run: |
           packer init .
-          packer fmt -check vault.pkr.hcl
-          packer validate vault.pkr.hcl
+          packer fmt -check vault-ami.pkr.hcl
+          packer validate vault-ami.pkr.hcl
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -42,7 +42,7 @@ jobs:
         id: packer-build
         working-directory: tools/packer
         run: |
-          AMI_ID=$(packer build -machine-readable vault.pkr.hcl | awk -F, '$0 ~/artifact,0,id/ {print $6}')
+          AMI_ID=$(packer build -machine-readable vault-ami.pkr.hcl | awk -F, '$0 ~/artifact,0,id/ {print $6}')
           echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
           echo "AMI_ID=$AMI_ID" >> $GITHUB_OUTPUT
 
