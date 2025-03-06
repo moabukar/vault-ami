@@ -1,0 +1,29 @@
+# name: Deploy with Vault Secrets
+# on: push
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Install Vault CLI
+#         run: |
+#           curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+#           sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+#           sudo apt-get update && sudo apt-get install vault
+
+#       - name: Authenticate with Vault
+#         run: |
+#           export VAULT_ADDR="http://vault-server:8200"
+#           VAULT_ROLE_ID="your-role-id"
+#           VAULT_SECRET_ID="your-secret-id"
+#           VAULT_TOKEN=$(vault write -field=token auth/approle/login role_id=$VAULT_ROLE_ID secret_id=$VAULT_SECRET_ID)
+#           echo "VAULT_TOKEN=${VAULT_TOKEN}" >> $GITHUB_ENV
+
+#       - name: Retrieve AWS Secrets from Vault
+#         run: |
+#           export AWS_ACCESS_KEY_ID=$(vault kv get -field=AWS_ACCESS_KEY aws-secrets/aws-access)
+#           export AWS_SECRET_ACCESS_KEY=$(vault kv get -field=AWS_SECRET_KEY aws-secrets/aws-access)
+#           echo "AWS Credentials Retrieved Successfully"
+
+#       - name: Deploy AWS Infrastructure
+#         run: |
+#           aws s3 ls --region us-east-1

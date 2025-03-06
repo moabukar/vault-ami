@@ -1,0 +1,59 @@
+name: Build & Push Vault AMI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  build-ami:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write  # OIDC authentication for AWS
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Packer
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install -y packer
+
+      - name: Validate Packer Template
+        working-directory: tools/packer
+        run: |
+          packer init .
+          packer fmt -check vault.pkr.hcl
+          packer validate vault.pkr.hcl
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsPacker
+          role-session-name: GitHubActionsPackerSession
+          aws-region: us-east-1
+
+      - name: Build and Push AMI with Packer
+        id: packer-build
+        working-directory: tools/packer
+        run: |
+          AMI_ID=$(packer build -machine-readable vault.pkr.hcl | awk -F, '$0 ~/artifact,0,id/ {print $6}')
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_OUTPUT
+
+      - name: Save AMI ID as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ami-id
+          path: ${{ github.workspace }}/tools/packer/ami-id.txt
+
+      - name: Store AMI ID as a GitHub Secret
+        run: |
+          gh secret set LATEST_AMI_ID --body $AMI_ID
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
