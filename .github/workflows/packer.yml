@@ -46,14 +46,14 @@ jobs:
           echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
           echo "AMI_ID=$AMI_ID" >> $GITHUB_OUTPUT
 
-      - name: Save AMI ID as Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ami-id
-          path: ${{ github.workspace }}/tools/packer/ami-id.txt
+      # - name: Save AMI ID as Artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ami-id
+      #     path: ${{ github.workspace }}/tools/packer/ami-id.txt
 
-      - name: Store AMI ID as a GitHub Secret
-        run: |
-          gh secret set LATEST_AMI_ID --body $AMI_ID
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Store AMI ID as a GitHub Secret
+      #   run: |
+      #     gh secret set LATEST_AMI_ID --body $AMI_ID
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
